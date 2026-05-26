@@ -59,7 +59,6 @@
             margin-top: 4px;
         }
 
-        /* Navigation Tabs */
         .nav-tabs {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -98,7 +97,6 @@
             background-color: var(--bg-card);
         }
 
-        /* Container & Structure */
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -139,7 +137,6 @@
             align-items: center;
         }
 
-        /* Form Controls */
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -175,7 +172,6 @@
             border-color: var(--accent);
         }
 
-        /* Buttons */
         .btn {
             background-color: var(--accent);
             color: white;
@@ -204,8 +200,9 @@
         .btn-danger:hover { background-color: #dc2626; }
         .btn-warning { background-color: var(--warning); color: #000; }
         .btn-warning:hover { background-color: #ca8a04; }
+        .btn-secondary { background-color: #475569; color: white; }
+        .btn-secondary:hover { background-color: #334155; }
 
-        /* Cuotas Box */
         .cuotas-box {
             background: rgba(59, 130, 246, 0.1);
             border: 1px solid var(--accent);
@@ -215,7 +212,6 @@
             font-size: 0.95rem;
         }
 
-        /* Canvas de Firma */
         .signature-container {
             display: flex;
             flex-direction: column;
@@ -233,7 +229,6 @@
             height: 150px;
         }
 
-        /* Agenda Dashboard */
         .dashboard-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -278,15 +273,68 @@
         .badge-proceso { background-color: var(--accent); color: white; }
         .badge-realizado { background-color: var(--success); color: white; }
 
-        /* Estilos Ocultos de Vista de Impresión / PDF */
+        /* PDF overlay modal */
+        #pdf-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #pdf-modal.visible {
+            display: flex;
+        }
+
+        .pdf-modal-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            width: 100%;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+
+        .pdf-modal-toolbar button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .pdf-modal-toolbar .btn-close-modal {
+            background: var(--danger);
+        }
+
+        #pdf-preview-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Hidden print wrapper - stays off screen until needed */
         #print-wrapper {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 210mm; 
+            width: 800px;
             background: white;
             color: #000;
-            padding: 30px;
+            padding: 40px;
             font-size: 11pt;
             box-sizing: border-box;
         }
@@ -303,6 +351,31 @@
         .print-signatures { display: flex; justify-content: space-around; margin-top: 50px; }
         .signature-block { text-align: center; width: 220px; color: #000; }
         .signature-block img { max-width: 100%; height: 75px; border-bottom: 1px solid #000; margin-bottom: 5px; }
+
+        /* Standalone PDF wrappers */
+        #print-wrapper-memoria {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            color: #000;
+            padding: 40px;
+            font-size: 11pt;
+            box-sizing: border-box;
+        }
+
+        #print-wrapper-garantia {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            color: #000;
+            padding: 40px;
+            font-size: 11pt;
+            box-sizing: border-box;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -428,7 +501,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-success" style="font-size:1.2rem; padding:18px;" onclick="exportarPDF()">⚡ GENERAR Y DESCARGAR PRESUPUESTO PDF</button>
+            <button class="btn btn-success" style="font-size:1.2rem; padding:18px;" onclick="exportarPDF('presupuesto')">⚡ GENERAR Y DESCARGAR PRESUPUESTO PDF</button>
         </section>
 
         <!-- ================= SOLAPA 2: MEMORIA TÉCNICA ================= -->
@@ -501,6 +574,7 @@
                     </div>
                 </div>
             </div>
+            <button class="btn btn-secondary" style="font-size:1.1rem; padding:16px;" onclick="exportarPDF('memoria')">📄 DESCARGAR MEMORIA TÉCNICA PDF</button>
         </section>
 
         <!-- ================= SOLAPA 3: GARANTÍA ================= -->
@@ -528,6 +602,7 @@
                     <textarea id="gar-texto" rows="12" oninput="guardarCampoLocal(this.id, this.value)">Por medio de la presente, la firma prestadora garantiza que el montaje, conexionado, tendido de conductores y tableros eléctricos ejecutados en la dirección arriba indicada han sido realizados respetando estrictamente las normativas reglamentarias vigentes de la Asociación Electrotécnica Argentina (AEA)...</textarea>
                 </div>
             </div>
+            <button class="btn btn-secondary" style="font-size:1.1rem; padding:16px;" onclick="exportarPDF('garantia')">🛡️ DESCARGAR CERTIFICADO DE GARANTÍA PDF</button>
         </section>
 
         <!-- ================= SOLAPA 4: AGENDA Y FINANZAS ================= -->
@@ -603,7 +678,16 @@
         </button>
     </nav>
 
-    <!-- ================= CONTEXTO DE IMPRESIÓN / GENERACIÓN DEL PDF ================= -->
+    <!-- ================= PDF MODAL ================= -->
+    <div id="pdf-modal">
+        <div class="pdf-modal-toolbar">
+            <button onclick="descargarPDFActual()" style="background: var(--success);">⬇️ Descargar PDF</button>
+            <button class="btn-close-modal" onclick="cerrarModalPDF()">✕ Cerrar Vista Previa</button>
+        </div>
+        <div id="pdf-preview-container"></div>
+    </div>
+
+    <!-- ================= PRINT WRAPPER: PRESUPUESTO COMPLETO ================= -->
     <div id="print-wrapper">
         <div class="print-flex" style="border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
             <div>
@@ -669,17 +753,17 @@
             <h3 class="text-black" style="font-size: 13pt; border-bottom: 2px solid #000; padding-bottom: 4px; font-weight: bold;">2. Memoria Técnica de Ingeniería e Infraestructura</h3>
             <div style="background: #f8fafc; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 10pt; line-height: 1.5; margin-top:10px; color: #000;">
                 <p><strong>Alcance Operativo:</strong> <span id="p-mem-alcance"></span></p>
-                <p style="margin-top: 5px;"><strong>Especificación de Conductores:</strong> <span id="p-mem-cable"></span> | <strong>Marca:</strong> <span id="p-mem-marca"></span> | <strong>Secciones:</strong> <span id="p-mem-seccion"></span></p>
+                <p style="margin-top: 5px;"><strong>Conductores:</strong> <span id="p-mem-cable"></span> | <strong>Marca:</strong> <span id="p-mem-marca"></span> | <strong>Secciones:</strong> <span id="p-mem-seccion"></span></p>
                 <p style="margin-top: 5px;"><strong>Canalizaciones:</strong> <span id="p-mem-canos"></span></p>
-                <p style="margin-top: 5px;"><strong>Protección Termomagnética (TM):</strong> <span id="p-mem-tm"></span> | <strong>Marca:</strong> <span id="p-mem-tm-m"></span> | <strong>Calibre:</strong> <span id="p-mem-tm-a"></span> | <strong>Poder de Corte (Icc):</strong> <span id="p-mem-tm-icc"></span></p>
-                <p style="margin-top: 5px;"><strong>Protección Diferencial (ID):</strong> <span id="p-mem-id"></span> | <strong>Sensibilidad/Rango:</strong> <span id="p-mem-id-s"></span></p>
+                <p style="margin-top: 5px;"><strong>Protección TM:</strong> <span id="p-mem-tm"></span> | <strong>Marca:</strong> <span id="p-mem-tm-m"></span> | <strong>Calibre:</strong> <span id="p-mem-tm-a"></span> | <strong>Icc:</strong> <span id="p-mem-tm-icc"></span></p>
+                <p style="margin-top: 5px;"><strong>Protección ID:</strong> <span id="p-mem-id"></span> | <strong>Especificaciones:</strong> <span id="p-mem-id-s"></span></p>
             </div>
         </div>
 
         <div id="p-garantia-block" style="margin-top: 25px;">
             <h3 class="text-black" style="font-size: 13pt; border-bottom: 2px solid #000; padding-bottom: 4px; font-weight: bold;">3. Certificado Estándar de Garantía</h3>
             <div style="font-size: 9.5pt; text-align: justify; line-height: 1.5; color: #000; margin-top: 10px; background: #f8fafc; padding:12px; border: 1px solid #cbd5e1; border-radius:6px;">
-                <p><strong>Vigencia estipulada:</strong> <span id="p-gar-tiempo" style="font-weight: bold;"></span></p>
+                <p><strong>Vigencia:</strong> <span id="p-gar-tiempo" style="font-weight: bold;"></span></p>
                 <p style="margin-top:6px; white-space: pre-wrap;" id="p-gar-texto"></p>
             </div>
         </div>
@@ -696,8 +780,91 @@
         </div>
     </div>
 
+    <!-- ================= PRINT WRAPPER: MEMORIA TÉCNICA STANDALONE ================= -->
+    <div id="print-wrapper-memoria">
+        <div class="print-flex" style="border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+            <div>
+                <h1 style="font-size: 22pt; margin: 0; color: #000; font-weight: bold;" id="pm-my-name"></h1>
+                <p style="color: #475569;" id="pm-my-phone"></p>
+            </div>
+            <div style="text-align:right;">
+                <h2 style="font-size: 15pt; margin:0; color:#1e293b; font-weight:bold;">MEMORIA TÉCNICA DE INGENIERÍA</h2>
+                <p id="pm-date" style="color:#000; font-size:10pt; margin-top:5px;"></p>
+            </div>
+        </div>
+        <p style="color:#000; margin-bottom:20px;"><strong>Cliente:</strong> <span id="pm-cliente"></span> &nbsp;|&nbsp; <strong>Dirección:</strong> <span id="pm-direccion"></span></p>
+
+        <h3 style="color:#000; font-size:12pt; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:12px;">Alcance del Trabajo</h3>
+        <p id="pm-alcance" style="color:#000; white-space:pre-wrap; line-height:1.6;"></p>
+
+        <h3 style="color:#000; font-size:12pt; border-bottom:2px solid #000; padding-bottom:4px; margin:20px 0 12px;">Especificación de Conductores y Canalizaciones</h3>
+        <table class="print-table">
+            <tbody>
+                <tr><th style="width:40%;">Tipo de Cable</th><td id="pm-cable-tipo"></td></tr>
+                <tr><th>Marca / Sello IRAM</th><td id="pm-cable-marca"></td></tr>
+                <tr><th>Secciones por Circuito</th><td id="pm-cable-seccion"></td></tr>
+                <tr><th>Canalizaciones</th><td id="pm-canos"></td></tr>
+            </tbody>
+        </table>
+
+        <h3 style="color:#000; font-size:12pt; border-bottom:2px solid #000; padding-bottom:4px; margin:20px 0 12px;">Protecciones en Tablero</h3>
+        <table class="print-table">
+            <tbody>
+                <tr><th style="width:40%;">Termomagnéticas (TM)</th><td id="pm-tm"></td></tr>
+                <tr><th>Marca TM</th><td id="pm-tm-marca"></td></tr>
+                <tr><th>Amperajes</th><td id="pm-tm-a"></td></tr>
+                <tr><th>Poder de Corte (Icc)</th><td id="pm-tm-icc"></td></tr>
+                <tr><th>Diferencial (ID)</th><td id="pm-id"></td></tr>
+                <tr><th>Sensibilidad / Corriente</th><td id="pm-id-specs"></td></tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top:40px; text-align:center; color:#000;">
+            <p style="font-size:9pt; color:#475569;">Documento generado por Roma App · <span id="pm-date2"></span></p>
+        </div>
+    </div>
+
+    <!-- ================= PRINT WRAPPER: GARANTÍA STANDALONE ================= -->
+    <div id="print-wrapper-garantia">
+        <div style="text-align:center; border-bottom:3px solid #000; padding-bottom:20px; margin-bottom:30px;">
+            <h1 style="font-size:22pt; color:#000; font-weight:bold; margin:0;" id="pg-my-name"></h1>
+            <p style="color:#475569; margin-top:6px;" id="pg-my-phone"></p>
+            <h2 style="font-size:16pt; color:#000; margin-top:15px; font-weight:bold; letter-spacing:2px;">🛡️ CERTIFICADO DE GARANTÍA DE OBRA</h2>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:16px; margin-bottom:20px;">
+            <div class="print-grid-2">
+                <div><strong style="color:#475569;">TITULAR BENEFICIARIO</strong><br><span id="pg-cliente" style="color:#000; font-size:13pt; font-weight:bold;"></span></div>
+                <div><strong style="color:#475569;">UBICACIÓN DE OBRA</strong><br><span id="pg-direccion" style="color:#000;"></span></div>
+            </div>
+            <div style="margin-top:12px;"><strong style="color:#475569;">PERÍODO DE GARANTÍA</strong><br><span id="pg-tiempo" style="color:#000; font-weight:bold; font-size:12pt;"></span></div>
+        </div>
+
+        <h3 style="color:#000; font-size:12pt; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:12px;">Alcance y Condiciones</h3>
+        <p id="pg-texto" style="color:#000; white-space:pre-wrap; line-height:1.7; font-size:10.5pt; text-align:justify;"></p>
+
+        <div class="print-signatures" style="margin-top:60px;">
+            <div class="signature-block">
+                <img id="pg-img-pro" src="" alt="" style="display:none; margin:0 auto;">
+                <div style="border-top:1px solid #000; padding-top:6px; color:#000; font-weight:bold;">Firma del Prestador</div>
+                <div id="pg-prestador-nombre" style="color:#475569; font-size:9pt; margin-top:4px;"></div>
+            </div>
+            <div class="signature-block">
+                <div style="height:75px; border-bottom:1px solid #000;"></div>
+                <div style="border-top:0; padding-top:6px; color:#000; font-weight:bold;">Conformidad del Titular</div>
+                <div id="pg-cli-nombre" style="color:#475569; font-size:9pt; margin-top:4px;"></div>
+            </div>
+        </div>
+
+        <div style="margin-top:40px; text-align:center;">
+            <p style="font-size:9pt; color:#94a3b8;">Documento generado por Roma App · <span id="pg-date"></span></p>
+        </div>
+    </div>
+
     <script>
         let agendaData = JSON.parse(localStorage.getItem('roma_agenda')) || [];
+        let _pdfCurrentWrapper = null;
+        let _pdfCurrentFilename = '';
 
         function guardarCampoLocal(id, valor) {
             localStorage.setItem('roma_form_' + id, valor);
@@ -726,11 +893,29 @@
         function sincronizarDatos() {
             const cliente = document.getElementById('cli-name').value || "";
             const direccion = document.getElementById('cli-address').value || "";
-            
+
             document.getElementById('mem-client-label').innerText = cliente || "Cliente No Asignado";
-            document.getElementById('gar-cliente').value = cliente;
-            document.getElementById('gar-direccion').value = direccion;
-            document.getElementById('age-cliente').value = cliente;
+
+            // Sincronizar garantía con datos del cliente
+            const garCliente = document.getElementById('gar-cliente');
+            const garDireccion = document.getElementById('gar-direccion');
+
+            // Solo sincronizar si el campo está vacío (no sobreescribir ediciones manuales)
+            if (!garCliente.value && cliente) {
+                garCliente.value = cliente;
+                guardarCampoLocal('gar-cliente', cliente);
+            }
+            if (!garDireccion.value && direccion) {
+                garDireccion.value = direccion;
+                guardarCampoLocal('gar-direccion', direccion);
+            }
+
+            // Sincronizar nombre del cliente en agenda (solo si está vacío)
+            const ageCliente = document.getElementById('age-cliente');
+            if (!ageCliente.value && cliente) {
+                ageCliente.value = cliente;
+                guardarCampoLocal('age-cliente', cliente);
+            }
         }
 
         function calcularTotales() {
@@ -745,7 +930,7 @@
             let totalUSD = 0;
             let totalARS = 0;
 
-            if(currency === "ARS") {
+            if (currency === "ARS") {
                 totalARS = total;
                 totalUSD = total / rate;
             } else {
@@ -753,13 +938,19 @@
                 totalARS = total * rate;
             }
 
-            document.getElementById('age-monto').value = Math.round(totalARS);
+            // Solo actualizar age-monto si está en 0 (no sobreescribir lo que el usuario ingresó)
+            const ageMontoEl = document.getElementById('age-monto');
+            const ageMontoActual = parseFloat(ageMontoEl.value) || 0;
+            if (ageMontoActual === 0 && totalARS > 0) {
+                ageMontoEl.value = Math.round(totalARS);
+                guardarCampoLocal('age-monto', Math.round(totalARS));
+            }
 
             const cuotasBox = document.getElementById('cuotas-info');
             if (installments > 1) {
                 const valorCuotaUSD = totalUSD / installments;
                 cuotasBox.style.display = "block";
-                cuotasBox.innerHTML = `📊 <strong>Plan Financiado:</strong> \${installments} cuotas de <span style="color:var(--warning); font-weight:bold;">USD \${valorCuotaUSD.toFixed(2)}</span> c/u (Aprox. $ \${(totalARS / installments).toFixed(2)} ARS).`;
+                cuotasBox.innerHTML = `📊 <strong>Plan Financiado:</strong> ${installments} cuotas de <span style="color:var(--warning); font-weight:bold;">USD ${valorCuotaUSD.toFixed(2)}</span> c/u (Aprox. $ ${(totalARS / installments).toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2})} ARS).`;
             } else {
                 cuotasBox.style.display = "none";
             }
@@ -768,9 +959,9 @@
         function setupCanvas(canvasId) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
-            
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
+
+            canvas.width = canvas.offsetWidth || 350;
+            canvas.height = canvas.offsetHeight || 150;
 
             const fGuardada = localStorage.getItem('roma_sig_' + canvasId);
             if (fGuardada) {
@@ -780,7 +971,7 @@
             }
 
             let drawing = false;
-            
+
             function getPos(e) {
                 const rect = canvas.getBoundingClientRect();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -789,14 +980,14 @@
             }
 
             function start(e) { drawing = true; draw(e); }
-            function end() { 
-                drawing = false; 
-                ctx.beginPath(); 
+            function end() {
+                drawing = false;
+                ctx.beginPath();
                 localStorage.setItem('roma_sig_' + canvasId, canvas.toDataURL());
             }
-            
+
             function draw(e) {
-                if(!drawing) return;
+                if (!drawing) return;
                 e.preventDefault();
                 const pos = getPos(e);
                 ctx.lineWidth = 3;
@@ -811,8 +1002,8 @@
             canvas.addEventListener('mousedown', start);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', end);
-            canvas.addEventListener('touchstart', start, {passive: false});
-            canvas.addEventListener('touchmove', draw, {passive: false});
+            canvas.addEventListener('touchstart', start, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
             canvas.addEventListener('touchend', end);
         }
 
@@ -824,11 +1015,11 @@
         }
 
         function agregarTrabajoAgenda() {
-            const cliente = document.getElementById('age-cliente').value || "Cliente Sin Nombre";
+            const cliente = document.getElementById('age-cliente').value.trim() || "Cliente Sin Nombre";
             const status = document.getElementById('age-status').value;
             const montoTotal = parseFloat(document.getElementById('age-monto').value) || 0;
             const montoAbonado = parseFloat(document.getElementById('age-abonado').value) || 0;
-            const materiales = document.getElementById('age-materiales').value || "Ninguna";
+            const materiales = document.getElementById('age-materiales').value.trim() || "Sin notas";
 
             const nuevoTrabajo = {
                 id: Date.now(),
@@ -841,13 +1032,17 @@
 
             agendaData.push(nuevoTrabajo);
             localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
+
+            // Limpiar notas y monto abonado después de guardar
             document.getElementById('age-materiales').value = "";
             localStorage.removeItem('roma_form_age-materiales');
+
             renderAgenda();
+            alert(`✅ Trabajo de "${cliente}" guardado en el historial.`);
         }
 
         function eliminarTrabajo(id) {
-            if(confirm("¿Seguro que querés borrar este registro del historial?")) {
+            if (confirm("¿Seguro que querés borrar este registro del historial?")) {
                 agendaData = agendaData.filter(item => item.id !== id);
                 localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
                 renderAgenda();
@@ -855,10 +1050,11 @@
         }
 
         function actualizarEstadoAgenda(id, nuevoEstado) {
+            if (!nuevoEstado) return;
             const item = agendaData.find(i => i.id === id);
-            if(item) {
+            if (item) {
                 item.status = nuevoEstado;
-                if(nuevoEstado === "realizado" && item.montoAbonado === 0) {
+                if (nuevoEstado === "realizado" && item.montoAbonado === 0) {
                     item.montoAbonado = item.montoTotal;
                 }
                 localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
@@ -873,39 +1069,48 @@
             let totalIngresado = 0;
             let totalAdeudado = 0;
 
+            if (agendaData.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:20px;">No hay trabajos guardados todavía.</p>';
+            }
+
             agendaData.forEach(item => {
-                const deuda = item.montoTotal - item.montoAbonado;
-                totalIngresado += item.montoAbonado;
+                // Asegurar que son números
+                const montoTotal = parseFloat(item.montoTotal) || 0;
+                const montoAbonado = parseFloat(item.montoAbonado) || 0;
+                const deuda = montoTotal - montoAbonado;
+                totalIngresado += montoAbonado;
                 totalAdeudado += (deuda > 0 ? deuda : 0);
+
+                const badgeClass = item.status === 'en proceso' ? 'proceso' : item.status;
 
                 const div = document.createElement('div');
                 div.className = 'agenda-item';
                 div.innerHTML = `
                     <div class="agenda-header">
-                        <strong style="font-size:1.1rem; color:var(--warning);">\${item.cliente}</strong>
-                        <span class="badge badge-\${item.status === 'en proceso' ? 'proceso' : item.status}">\${item.status}</span>
+                        <strong style="font-size:1.1rem; color:var(--warning);">${item.cliente}</strong>
+                        <span class="badge badge-${badgeClass}">${item.status}</span>
                     </div>
-                    <p style="font-size:0.9rem; margin-bottom:6px;"><strong>Notas:</strong> \${item.materiales}</p>
+                    <p style="font-size:0.9rem; margin-bottom:6px;"><strong>Notas:</strong> ${item.materiales}</p>
                     <div class="grid-2" style="font-size:0.85rem; background:rgba(0,0,0,0.2); padding:8px; border-radius:6px;">
-                        <div>Total: <strong>$ \${item.montoTotal}</strong></div>
-                        <div>Cobrado: <strong style="color:#4ade80;">$ \${item.montoAbonado}</strong></div>
-                        <div>Resta cobrar: <strong style="color:#f87171;">$ \${deuda > 0 ? deuda : 0}</strong></div>
+                        <div>Total: <strong>$ ${montoTotal.toLocaleString('es-AR')}</strong></div>
+                        <div>Cobrado: <strong style="color:#4ade80;">$ ${montoAbonado.toLocaleString('es-AR')}</strong></div>
+                        <div>Resta cobrar: <strong style="color:#f87171;">$ ${(deuda > 0 ? deuda : 0).toLocaleString('es-AR')}</strong></div>
                     </div>
                     <div style="display:flex; gap:8px; margin-top:10px;">
-                        <select style="padding:6px; font-size:0.8rem; flex:1;" onchange="actualizarEstadoAgenda(\${item.id}, this.value)">
+                        <select style="padding:6px; font-size:0.8rem; flex:1;" onchange="actualizarEstadoAgenda(${item.id}, this.value)">
                             <option value="">Cambiar Estado...</option>
                             <option value="pendiente">Pendiente</option>
                             <option value="en proceso">En Proceso</option>
                             <option value="realizado">Realizado / Cobrado</option>
                         </select>
-                        <button class="btn btn-danger" style="margin:0; padding:6px 12px; font-size:0.8rem; width:auto;" onclick="eliminarTrabajo(\${item.id})">Borrar</button>
+                        <button class="btn btn-danger" style="margin:0; padding:6px 12px; font-size:0.8rem; width:auto;" onclick="eliminarTrabajo(${item.id})">Borrar</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
 
-            document.getElementById('dash-ingresado').innerText = `$ \${totalIngresado.toLocaleString('es-AR')}`;
-            document.getElementById('dash-adeudado').innerText = `$ \${totalAdeudado.toLocaleString('es-AR')}`;
+            document.getElementById('dash-ingresado').innerText = `$ ${totalIngresado.toLocaleString('es-AR')}`;
+            document.getElementById('dash-adeudado').innerText = `$ ${totalAdeudado.toLocaleString('es-AR')}`;
         }
 
         function resetearAppCompleta() {
@@ -919,40 +1124,42 @@
             }
         }
 
-        function exportarPDF() {
+        // ===== LLENADO DE WRAPPERS PDF =====
+
+        function llenarWrapperPresupuesto() {
             document.getElementById('p-my-name').innerText = document.getElementById('my-name').value;
             document.getElementById('p-my-phone').innerText = "Contacto Técnico: " + document.getElementById('my-phone').value;
             document.getElementById('p-date').innerText = "Fecha de Emisión: " + new Date().toLocaleDateString('es-AR');
-            
+
             document.getElementById('p-cli-name').innerText = document.getElementById('cli-name').value || "Cliente Destinatario";
             document.getElementById('p-cli-address').innerText = "Dirección de Obra: " + (document.getElementById('cli-address').value || "-");
             document.getElementById('p-cli-phone').innerText = "Tel: " + (document.getElementById('cli-phone').value || "-");
 
             const mon = document.getElementById('currency-select').value;
             document.getElementById('p-payment').innerText = document.getElementById('payment-method').value;
-            
+
             const inst = document.getElementById('installments-select').value;
-            document.getElementById('p-installments').innerText = inst === "1" ? "Pago único sin financiar" : `\${inst} Cuotas fijas mensuales`;
+            document.getElementById('p-installments').innerText = inst === "1" ? "Pago único sin financiar" : `${inst} Cuotas fijas mensuales`;
 
             let subMO = parseFloat(document.getElementById('mo-monto-total').value) || 0;
             let subMat = parseFloat(document.getElementById('mat-monto-total').value) || 0;
             let totalNeto = subMO + subMat;
             const rate = parseFloat(document.getElementById('usd-rate').value) || 1;
 
-            document.getElementById('p-mo-det').innerText = document.getElementById('mo-detalle').value || "Tareas de servicio técnico profesional no especificadas.";
-            document.getElementById('p-mat-det').innerText = document.getElementById('mat-detalle').value || "Insumos y materiales homologados según requerimiento.";
+            document.getElementById('p-mo-det').innerText = document.getElementById('mo-detalle').value || "Tareas de servicio técnico profesional.";
+            document.getElementById('p-mat-det').innerText = document.getElementById('mat-detalle').value || "Insumos y materiales homologados.";
 
-            document.getElementById('p-sub-mo').innerText = `\${mon} \${subMO.toLocaleString('es-AR')}`;
-            document.getElementById('p-sub-mat').innerText = `\${mon} \${subMat.toLocaleString('es-AR')}`;
-            document.getElementById('p-total').innerText = `\${mon} \${totalNeto.toLocaleString('es-AR')}`;
+            document.getElementById('p-sub-mo').innerText = `${mon} ${subMO.toLocaleString('es-AR')}`;
+            document.getElementById('p-sub-mat').innerText = `${mon} ${subMat.toLocaleString('es-AR')}`;
+            document.getElementById('p-total').innerText = `${mon} ${totalNeto.toLocaleString('es-AR')}`;
 
-            if(mon === "ARS") {
+            if (mon === "ARS") {
                 const totalEnUSD = totalNeto / rate;
                 const cuotasCant = parseInt(inst);
-                if(cuotasCant > 1) {
-                    document.getElementById('p-usd-calc').innerText = `Equivalencia Financiación: \${cuotasCant} cuotas de USD \${(totalEnUSD / cuotasCant).toFixed(2)} c/u`;
+                if (cuotasCant > 1) {
+                    document.getElementById('p-usd-calc').innerText = `Financiación: ${cuotasCant} cuotas de USD ${(totalEnUSD / cuotasCant).toFixed(2)} c/u`;
                 } else {
-                    document.getElementById('p-usd-calc').innerText = `Valor de Referencia: USD \${totalEnUSD.toFixed(2)}`;
+                    document.getElementById('p-usd-calc').innerText = `Valor de Referencia: USD ${totalEnUSD.toFixed(2)}`;
                 }
             } else {
                 document.getElementById('p-usd-calc').innerText = "";
@@ -975,29 +1182,128 @@
 
             const imgPro = document.getElementById('p-img-pro');
             const imgCli = document.getElementById('p-img-cli');
-
             const fPro = localStorage.getItem('roma_sig_sig-pro');
             const fCli = localStorage.getItem('roma_sig_sig-cli');
+            if (fPro) { imgPro.src = fPro; imgPro.style.display = "block"; } else { imgPro.style.display = "none"; }
+            if (fCli) { imgCli.src = fCli; imgCli.style.display = "block"; } else { imgCli.style.display = "none"; }
+        }
 
-            if(fPro) { imgPro.src = fPro; imgPro.style.display = "block"; } else { imgPro.style.display = "none"; }
-            if(fCli) { imgCli.src = fCli; imgCli.style.display = "block"; } else { imgCli.style.display = "none"; }
+        function llenarWrapperMemoria() {
+            const fecha = new Date().toLocaleDateString('es-AR');
+            document.getElementById('pm-my-name').innerText = document.getElementById('my-name').value;
+            document.getElementById('pm-my-phone').innerText = document.getElementById('my-phone').value;
+            document.getElementById('pm-date').innerText = "Fecha: " + fecha;
+            document.getElementById('pm-date2').innerText = fecha;
+            document.getElementById('pm-cliente').innerText = document.getElementById('cli-name').value || "-";
+            document.getElementById('pm-direccion').innerText = document.getElementById('cli-address').value || "-";
+            document.getElementById('pm-alcance').innerText = document.getElementById('mem-alcance').value;
+            document.getElementById('pm-cable-tipo').innerText = document.getElementById('mem-cable-tipo').value;
+            document.getElementById('pm-cable-marca').innerText = document.getElementById('mem-cable-marca').value;
+            document.getElementById('pm-cable-seccion').innerText = document.getElementById('mem-cable-seccion').value;
+            document.getElementById('pm-canos').innerText = document.getElementById('mem-canos').value;
+            document.getElementById('pm-tm').innerText = document.getElementById('mem-tm').value;
+            document.getElementById('pm-tm-marca').innerText = document.getElementById('mem-tm-marca').value;
+            document.getElementById('pm-tm-a').innerText = document.getElementById('mem-tm-a').value;
+            document.getElementById('pm-tm-icc').innerText = document.getElementById('mem-tm-icc').value;
+            document.getElementById('pm-id').innerText = document.getElementById('mem-id').value;
+            document.getElementById('pm-id-specs').innerText = document.getElementById('mem-id-specs').value;
+        }
 
-            const elementoAImprimir = document.getElementById('print-wrapper');
-            elementoAImprimir.style.position = 'static';
-            elementoAImprimir.style.left = '0';
+        function llenarWrapperGarantia() {
+            const fecha = new Date().toLocaleDateString('es-AR');
+            document.getElementById('pg-my-name').innerText = document.getElementById('my-name').value;
+            document.getElementById('pg-my-phone').innerText = document.getElementById('my-phone').value;
+            document.getElementById('pg-date').innerText = fecha;
+            document.getElementById('pg-cliente').innerText = document.getElementById('gar-cliente').value || document.getElementById('cli-name').value || "-";
+            document.getElementById('pg-direccion').innerText = document.getElementById('gar-direccion').value || document.getElementById('cli-address').value || "-";
+            document.getElementById('pg-tiempo').innerText = document.getElementById('gar-tiempo').value;
+            document.getElementById('pg-texto').innerText = document.getElementById('gar-texto').value;
+            document.getElementById('pg-prestador-nombre').innerText = document.getElementById('my-name').value;
+            document.getElementById('pg-cli-nombre').innerText = document.getElementById('gar-cliente').value || document.getElementById('cli-name').value || "";
+
+            const fPro = localStorage.getItem('roma_sig_sig-pro');
+            const pgImgPro = document.getElementById('pg-img-pro');
+            if (fPro) { pgImgPro.src = fPro; pgImgPro.style.display = "block"; } else { pgImgPro.style.display = "none"; }
+        }
+
+        // ===== EXPORTAR PDF =====
+
+        function exportarPDF(tipo) {
+            let wrapper, filename;
+
+            if (tipo === 'presupuesto') {
+                llenarWrapperPresupuesto();
+                wrapper = document.getElementById('print-wrapper');
+                filename = `Presupuesto_${document.getElementById('cli-name').value || 'Cliente'}.pdf`;
+            } else if (tipo === 'memoria') {
+                llenarWrapperMemoria();
+                wrapper = document.getElementById('print-wrapper-memoria');
+                filename = `MemoriaTecnica_${document.getElementById('cli-name').value || 'Cliente'}.pdf`;
+            } else if (tipo === 'garantia') {
+                llenarWrapperGarantia();
+                wrapper = document.getElementById('print-wrapper-garantia');
+                filename = `Garantia_${document.getElementById('cli-name').value || 'Cliente'}.pdf`;
+            }
+
+            _pdfCurrentWrapper = wrapper;
+            _pdfCurrentFilename = filename;
+
+            // Mostrar vista previa en el modal
+            const previewContainer = document.getElementById('pdf-preview-container');
+            previewContainer.innerHTML = '';
+
+            // Clonar el wrapper para mostrarlo en la preview
+            const clone = wrapper.cloneNode(true);
+            clone.style.position = 'static';
+            clone.style.left = '0';
+            clone.style.width = '100%';
+            clone.style.padding = '24px';
+            clone.style.fontSize = '9pt';
+            previewContainer.appendChild(clone);
+
+            document.getElementById('pdf-modal').classList.add('visible');
+        }
+
+        function descargarPDFActual() {
+            if (!_pdfCurrentWrapper) return;
+
+            const btn = document.querySelector('#pdf-modal .pdf-modal-toolbar button');
+            btn.innerText = '⏳ Generando...';
+            btn.disabled = true;
+
+            // Mover wrapper al flow temporalmente
+            _pdfCurrentWrapper.style.position = 'static';
+            _pdfCurrentWrapper.style.left = '0';
 
             const opciones = {
-                margin:       [12, 12, 12, 12],
-                filename:     `Presupuesto_\${document.getElementById('cli-name').value || 'Cliente'}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: [12, 12, 12, 12],
+                filename: _pdfCurrentFilename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opciones).from(elementoAImprimir).save().then(() => {
-                elementoAImprimir.style.position = 'absolute';
-                elementoAImprimir.style.left = '-9999px';
+            html2pdf().set(opciones).from(_pdfCurrentWrapper).save().then(() => {
+                // Volver a esconder el wrapper
+                _pdfCurrentWrapper.style.position = 'absolute';
+                _pdfCurrentWrapper.style.left = '-9999px';
+                btn.innerText = '⬇️ Descargar PDF';
+                btn.disabled = false;
+            }).catch(err => {
+                console.error(err);
+                _pdfCurrentWrapper.style.position = 'absolute';
+                _pdfCurrentWrapper.style.left = '-9999px';
+                btn.innerText = '⬇️ Descargar PDF';
+                btn.disabled = false;
+                alert('Error al generar el PDF. Intentá de nuevo.');
             });
+        }
+
+        function cerrarModalPDF() {
+            document.getElementById('pdf-modal').classList.remove('visible');
+            document.getElementById('pdf-preview-container').innerHTML = '';
+            _pdfCurrentWrapper = null;
+            _pdfCurrentFilename = '';
         }
 
         window.onload = function() {
