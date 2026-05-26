@@ -175,7 +175,7 @@
             border-color: var(--accent);
         }
 
-        /* Buttons Grandecitos y Visibles */
+        /* Buttons */
         .btn {
             background-color: var(--accent);
             color: white;
@@ -204,30 +204,6 @@
         .btn-danger:hover { background-color: #dc2626; }
         .btn-warning { background-color: var(--warning); color: #000; }
         .btn-warning:hover { background-color: #ca8a04; }
-
-        /* Dynamic Lists (Items de Presupuesto) */
-        .item-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-            background: var(--bg-card);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-
-        .item-row input[type="text"] { flex: 2; }
-        .item-row input[type="number"] { flex: 1; }
-
-        .btn-del {
-            background: var(--danger);
-            border: none;
-            color: white;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
 
         /* Cuotas Box */
         .cuotas-box {
@@ -304,32 +280,30 @@
 
         /* Estilos Ocultos de Vista de Impresión / PDF */
         #print-wrapper {
-            display: none;
+            position: absolute;
+            left: -9999px; /* Lo desplaza fuera de pantalla para que no moleste pero html2pdf lo pueda capturar perfecto */
+            top: 0;
+            width: 210mm; /* Ancho real de hoja A4 */
             background: white;
             color: #000;
             padding: 30px;
             font-size: 11pt;
+            box-sizing: border-box;
         }
 
-        @media print {
-            body * { display: none !important; }
-            #print-wrapper, #print-wrapper * { display: block !important; }
-            #print-wrapper { width: 100%; position: absolute; top: 0; left: 0; }
-            .print-flex { display: flex !important; justify-content: space-between; }
-            .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr; gap: 20px; }
-            .text-black { color: #000000 !important; }
-            .num-rojo { color: #dc2626 !important; font-weight: bold; font-size: 13pt; }
-            .num-verde { color: #16a34a !important; font-weight: bold; font-size: 13pt; }
-            .num-amarillo { background-color: #fef08a !important; color: #000000 !important; font-weight: bold; padding: 2px 6px; border-radius: 4px; font-size: 14pt; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
-            .print-table th { background-color: #f1f5f9; }
-            .print-signatures { display: flex !important; justify-content: space-around; margin-top: 50px; }
-            .signature-block { text-align: center; width: 200px; }
-            .signature-block img { max-width: 100%; height: auto; border-bottom: 1px solid #000; }
-        }
+        .print-flex { display: flex; justify-content: space-between; }
+        .print-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .text-black { color: #000000 !important; }
+        .num-rojo { color: #dc2626 !important; font-weight: bold; font-size: 12pt; }
+        .num-verde { color: #16a34a !important; font-weight: bold; font-size: 12pt; }
+        .num-amarillo { background-color: #fef08a !important; color: #000000 !important; font-weight: bold; padding: 4px 8px; border-radius: 4px; font-size: 14pt; display: inline-block; }
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; color: #000 !important; }
+        .print-table th { background-color: #f1f5f9; font-weight: bold; }
+        .print-signatures { display: flex; justify-content: space-around; margin-top: 50px; }
+        .signature-block { text-align: center; width: 220px; color: #000; }
+        .signature-block img { max-width: 100%; height: 75px; border-bottom: 1px solid #000; margin-bottom: 5px; }
     </style>
-    <!-- Incluimos html2pdf para descargas directas en formato Mobile sin romper nada -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -340,20 +314,22 @@
     </header>
 
     <div class="container">
+        <!-- Botón de Reset general para limpiar datos guardados -->
+        <button class="btn btn-danger" style="margin-bottom: 20px; padding: 10px; font-size: 0.9rem;" onclick="resetearAppCompleta()">⚠️ Limpiar Formulario y Empezar Cliente Nuevo</button>
 
         <!-- ================= SOLAPA 1: PRESUPUESTOS ================= -->
         <section id="sec-presupuesto" class="app-section active">
-            <!-- Datos Propios (Editables) -->
+            <!-- Datos Propios -->
             <div class="card">
                 <h2>Mis Datos de Contacto</h2>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Nombre Comercial / Profesional</label>
-                        <input type="text" id="my-name" value="Roma Electricistas">
+                        <input type="text" id="my-name" value="Roma Electricistas" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Teléfono de Contacto</label>
-                        <input type="text" id="my-phone" value="+54 9 11 1234-5678">
+                        <input type="text" id="my-phone" value="+54 9 11 1234-5678" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
             </div>
@@ -363,16 +339,16 @@
                 <h2>Datos del Cliente</h2>
                 <div class="form-group">
                     <label>Nombre del Cliente</label>
-                    <input type="text" id="cli-name" placeholder="Ej: Juan Pérez" oninput="sincronizarDatos()">
+                    <input type="text" id="cli-name" placeholder="Ej: Juan Pérez" oninput="sincronizarDatos(); guardarCampoLocal(this.id, this.value);">
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Dirección del Trabajo</label>
-                        <input type="text" id="cli-address" placeholder="Ej: Av. Directorio 4500, Mataderos" oninput="sincronizarDatos()">
+                        <input type="text" id="cli-address" placeholder="Ej: Av. Directorio 4500, Mataderos" oninput="sincronizarDatos(); guardarCampoLocal(this.id, this.value);">
                     </div>
                     <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="text" id="cli-phone" placeholder="Ej: 11 5555-4444">
+                        <label>Teléfono del Cliente</label>
+                        <input type="text" id="cli-phone" placeholder="Ej: 11 5555-4444" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
             </div>
@@ -383,20 +359,20 @@
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Moneda Base del Presupuesto</label>
-                        <select id="currency-select" onchange="calcularTotales()">
+                        <select id="currency-select" onchange="calcularTotales(); guardarCampoLocal(this.id, this.value);">
                             <option value="ARS">Pesos Argentinos (ARS)</option>
                             <option value="USD">Dólares (USD)</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Cotización Dólar (1 USD a ARS)</label>
-                        <input type="number" id="usd-rate" value="1000" oninput="calcularTotales()">
+                        <input type="number" id="usd-rate" value="1000" oninput="calcularTotales(); guardarCampoLocal(this.id, this.value);">
                     </div>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Plan de Cuotas</label>
-                        <select id="installments-select" onchange="calcularTotales()">
+                        <select id="installments-select" onchange="calcularTotales(); guardarCampoLocal(this.id, this.value);">
                             <option value="1">Un solo pago</option>
                             <option value="3">3 Cuotas</option>
                             <option value="6">6 Cuotas</option>
@@ -405,7 +381,7 @@
                     </div>
                     <div class="form-group">
                         <label>Forma de Pago Propuesta</label>
-                        <select id="payment-method">
+                        <select id="payment-method" onchange="guardarCampoLocal(this.id, this.value)">
                             <option value="Efectivo">Efectivo</option>
                             <option value="Transferencia">Transferencia Bancaria</option>
                             <option value="MercadoPago">MercadoPago</option>
@@ -416,50 +392,49 @@
                 <div id="cuotas-info" class="cuotas-box" style="display:none;"></div>
             </div>
 
-            <!-- Mano de Obra -->
+            <!-- Mano de Obra (Simplificado con un único monto total) -->
             <div class="card">
-                <h2>Mano de Obra (Ítems en Negro, Números en Rojo)</h2>
-                <div id="mo-container">
-                    <div class="item-row">
-                        <input type="text" placeholder="Descripción de la tarea" value="Instalación de bocas de iluminación y cableado general">
-                        <input type="number" placeholder="Monto" value="0" class="mo-price" oninput="calcularTotales()">
-                        <button class="btn-del" onclick="this.parentElement.remove(); calcularTotales();">✕</button>
-                    </div>
+                <h2>Mano de Obra</h2>
+                <div class="form-group">
+                    <label>Detalle de Tareas de Mano de Obra</label>
+                    <textarea id="mo-detalle" rows="4" placeholder="Escribí acá el detalle de los trabajos (ej: Cableado completo, instalación de llaves, bocas, térmicas, etc.)" oninput="guardarCampoLocal(this.id, this.value)"></textarea>
                 </div>
-                <button class="btn btn-warning" style="padding: 8px; font-size:0.9rem;" onclick="addMoItem()">+ Agregar Ítems de Mano de Obra</button>
+                <div class="form-group">
+                    <label>Monto Total Mano de Obra ($ o USD según moneda)</label>
+                    <input type="number" id="mo-monto-total" value="0" placeholder="Ej: 150000" oninput="calcularTotales(); guardarCampoLocal(this.id, this.value);">
+                </div>
             </div>
 
-            <!-- Materiales -->
+            <!-- Materiales (Simplificado con un único monto total) -->
             <div class="card">
-                <h2>Materiales (Ítems en Negro, Números en Verde)</h2>
-                <div id="mat-container">
-                    <div class="item-row">
-                        <input type="text" placeholder="Material / Kit" value="Materiales eléctricos normalizados (Cañerías, cajas, cables)">
-                        <input type="number" placeholder="Monto" value="0" class="mat-price" oninput="calcularTotales()">
-                        <button class="btn-del" onclick="this.parentElement.remove(); calcularTotales();">✕</button>
-                    </div>
+                <h2>Materiales</h2>
+                <div class="form-group">
+                    <label>Lista de Materiales Incluidos / Requeridos</label>
+                    <textarea id="mat-detalle" rows="4" placeholder="Escribí acá los materiales incluidos (ej: Cables 2.5mm Prysmian, 3 térmicas Schneider, cajas, caños corrugados, etc.)" oninput="guardarCampoLocal(this.id, this.value)"></textarea>
                 </div>
-                <button class="btn btn-warning" style="padding: 8px; font-size:0.9rem;" onclick="addMatItem()">+ Agregar Ítems de Materiales</button>
+                <div class="form-group">
+                    <label>Monto Total Materiales ($ o USD según moneda)</label>
+                    <input type="number" id="mat-monto-total" value="0" placeholder="Ej: 95000" oninput="calcularTotales(); guardarCampoLocal(this.id, this.value);">
+                </div>
             </div>
 
-            <!-- Firmas Digitales en App -->
+            <!-- Firmas Digitales -->
             <div class="card">
                 <h2>Firmas del Acuerdo</h2>
                 <div class="grid-2">
                     <div class="signature-container">
                         <label>Firma del Profesional</label>
                         <canvas id="sig-pro" class="sig-canvas"></canvas>
-                        <button class="btn btn-danger" style="padding:6px; font-size:0.8rem;" onclick="clearCanvas('sig-pro')">Limpiar</button>
+                        <button class="btn btn-danger" style="padding:6px; font-size:0.8rem; width:auto;" onclick="clearCanvas('sig-pro')">Limpiar</button>
                     </div>
                     <div class="signature-container">
                         <label>Firma del Cliente</label>
                         <canvas id="sig-cli" class="sig-canvas"></canvas>
-                        <button class="btn btn-danger" style="padding:6px; font-size:0.8rem;" onclick="clearCanvas('sig-cli')">Limpiar</button>
+                        <button class="btn btn-danger" style="padding:6px; font-size:0.8rem; width:auto;" onclick="clearCanvas('sig-cli')">Limpiar</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Botones de Acción de Exportación -->
             <button class="btn btn-success" style="font-size:1.2rem; padding:18px;" onclick="exportarPDF()">⚡ GENERAR Y DESCARGAR PRESUPUESTO PDF</button>
         </section>
 
@@ -468,33 +443,33 @@
             <div class="card">
                 <h2>Memoria Técnica de Ingeniería</h2>
                 <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
-                    Detalle explícito de la infraestructura tecnológica, secciones y protecciones para el cliente: <strong id="mem-client-label"></strong>
+                    Detalle de la infraestructura, secciones y protecciones para el cliente: <strong id="mem-client-label"></strong>
                 </p>
 
                 <div class="form-group">
                     <label>Alcance Detallado del Trabajo</label>
-                    <textarea id="mem-alcance" rows="4">Desmontaje completo de cableado antiguo textil/antirreglamentario, replanteo de circuitos según AEA, y estructurado de cañerías embutidas internas.</textarea>
+                    <textarea id="mem-alcance" rows="4" oninput="guardarCampoLocal(this.id, this.value)">Desmontaje completo de cableado antiguo textil/antirreglamentario, replanteo de circuitos según AEA, y estructurado de cañerías embutidas internas.</textarea>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Tipo de Cable Empleado</label>
-                        <input type="text" id="mem-cable-tipo" value="Unipolar de Cobre Extra-flexible (Vaina de PVC Ecológica)">
+                        <input type="text" id="mem-cable-tipo" value="Unipolar de Cobre Extra-flexible (Vaina de PVC Ecológica)" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Marca Homologada / Sello IRAM</label>
-                        <input type="text" id="mem-cable-marca" value="Prysmian / IMSA">
+                        <input type="text" id="mem-cable-marca" value="Prysmian / IMSA" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Secciones Utilizadas por Circuito</label>
-                        <input type="text" id="mem-cable-seccion" value="Iluminación: 1.5mm² | Tomas: 2.5mm² | Aire/Especiales: 4mm² | PE: 2.5mm²">
+                        <input type="text" id="mem-cable-seccion" value="Iluminación: 1.5mm² | Tomas: 2.5mm² | Aire/Especiales: 4mm² | PE: 2.5mm²" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Canalizaciones / Cañerías</label>
-                        <input type="text" id="mem-canos" value="Caño Corrugado Tipo Pesado Ignífugo Ensayado (Blanco/Gris)">
+                        <input type="text" id="mem-canos" value="Caño Corrugado Tipo Pesado Ignífugo Ensayado (Blanco/Gris)" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
 
@@ -503,33 +478,33 @@
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Interruptores Termomagnéticos (TM)</label>
-                        <input type="text" id="mem-tm" value="Llaves Termomagnéticas Bipolares Curva C">
+                        <input type="text" id="mem-tm" value="Llaves Termomagnéticas Bipolares Curva C" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Marca de la TM</label>
-                        <input type="text" id="mem-tm-marca" value="Schneider Electric / Sica Profesional">
+                        <input type="text" id="mem-tm-marca" value="Schneider Electric / Sica Profesional" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Amperajes (A) Asignados</label>
-                        <input type="text" id="mem-tm-a" value="IUG: 10A | TUG: 16A | IUE/TUE: 20A">
+                        <input type="text" id="mem-tm-a" value="IUG: 10A | TUG: 16A | IUE/TUE: 20A" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
-                        <label>Poder de Corte O Poder de Ruptura (Icc)</label>
-                        <input type="text" id="mem-tm-icc" value="3 kA (3000 A) / 4.5 kA según norma IEC 60898">
+                        <label>Poder de Corte / Poder de Ruptura (Icc)</label>
+                        <input type="text" id="mem-tm-icc" value="3 kA (3000 A) / 4.5 kA según norma IEC 60898" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
 
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Interruptor Diferencial (ID) / Disyuntor</label>
-                        <input type="text" id="mem-id" value="Interruptor Diferencial Inmunizado / Clase AC">
+                        <input type="text" id="mem-id" value="Interruptor Diferencial Inmunizado / Clase AC" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Sensibilidad y Capacidad (mA / A)</label>
-                        <input type="text" id="mem-id-specs" value="Sensibilidad: 30mA (0.03A) | Corriente Nominal: 25A / 40A">
+                        <input type="text" id="mem-id-specs" value="Sensibilidad: 30mA (0.03A) | Corriente Nominal: 25A / 40A" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
             </div>
@@ -539,29 +514,25 @@
         <section id="sec-garantia" class="app-section">
             <div class="card">
                 <h2>Certificado Oficial de Garantía de Obra</h2>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
-                    Este documento se autocompila en base a los datos cargados pero se mantiene 100% editable antes de guardar.
-                </p>
-
                 <div class="grid-2">
                     <div class="form-group">
                         <label>Titular Beneficiario</label>
-                        <input type="text" id="gar-cliente">
+                        <input type="text" id="gar-cliente" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
                         <label>Ubicación / Emplazamiento</label>
-                        <input type="text" id="gar-direccion">
+                        <input type="text" id="gar-direccion" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Período de Validez de la Garantía</label>
-                    <input type="text" id="gar-tiempo" value="12 Meses (1 Año) a partir de la firma de conformidad">
+                    <input type="text" id="gar-tiempo" value="12 Meses (1 Año) a partir de la firma de conformidad" oninput="guardarCampoLocal(this.id, this.value)">
                 </div>
 
                 <div class="form-group">
                     <label>Texto Legal del Certificado</label>
-                    <textarea id="gar-texto" rows="12">Por medio de la presente, la firma prestadora garantiza que el montaje, conexionado, tendido de conductores y tableros eléctricos ejecutados en la dirección arriba indicada han sido realizados respetando estrictamente las normativas reglamentarias vigentes de la Asociación Electrotécnica Argentina (AEA).
+                    <textarea id="gar-texto" rows="12" oninput="guardarCampoLocal(this.id, this.value)">Por medio de la presente, la firma prestadora garantiza que el montaje, conexionado, tendido de conductores y tableros eléctricos ejecutados en la dirección arriba indicada han sido realizados respetando estrictamente las normativas reglamentarias vigentes de la Asociación Electrotécnica Argentina (AEA).
 
 La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra aplicada por el término establecido. Quedan explícitamente excluidas de esta cobertura todas aquellas fallas producidas por sobretensiones ajenas a la instalación interna proveídas por la compañía distribuidora de energía de red, vicios ocultos preexistentes no intervenidos, sobrecargas deliberadas por el usuario por encima de la potencia máxima simultánea de diseño, o manipulación posterior por personal no matriculado ni autorizado.</textarea>
                 </div>
@@ -570,29 +541,27 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
 
         <!-- ================= SOLAPA 4: AGENDA Y FINANZAS ================= -->
         <section id="sec-agenda" class="app-section">
-            <!-- Indicadores Financieros Reales en Tiempo Real -->
             <div class="dashboard-stats">
                 <div class="stat-card stat-ingresos">
                     <div style="font-size:0.85rem; text-transform: uppercase;">Total Ingresado</div>
-                    <div id="dash-ingresado" style="font-size:1.4rem; margin-top:5px;">$0.00</div>
+                    <div id="dash-ingresado" style="font-size:1.4rem; margin-top:5px;">$0</div>
                 </div>
                 <div class="stat-card stat-deuda">
                     <div style="font-size:0.85rem; text-transform: uppercase;">Total Adeudado</div>
-                    <div id="dash-adeudado" style="font-size:1.4rem; margin-top:5px;">$0.00</div>
+                    <div id="dash-adeudado" style="font-size:1.4rem; margin-top:5px;">$0</div>
                 </div>
             </div>
 
-            <!-- Nuevo Trabajo Manual (Vinculación Directa Opcional) -->
             <div class="card">
-                <h2>Asignar / Registrar Trabajo en Agenda</h2>
+                <h2>Registrar este Trabajo en la Agenda Histórica</h2>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Cliente Asignado</label>
-                        <input type="text" id="age-cliente" placeholder="Nombre del Cliente">
+                        <label>Cliente</label>
+                        <input type="text" id="age-cliente" placeholder="Nombre del Cliente" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
-                        <label>Estado Inicial</label>
-                        <select id="age-status">
+                        <label>Estado Actual</label>
+                        <select id="age-status" onchange="guardarCampoLocal(this.id, this.value)">
                             <option value="pendiente">Pendiente</option>
                             <option value="en proceso">En Proceso</option>
                             <option value="realizado">Realizado / Cobrado</option>
@@ -601,28 +570,26 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Presupuesto Cobrado ($)</label>
-                        <input type="number" id="age-monto" value="0">
+                        <label>Presupuesto Total Cobrado ($ ARS)</label>
+                        <input type="number" id="age-monto" value="0" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                     <div class="form-group">
-                        <label>Monto Ya Abonado ($)</label>
-                        <input type="number" id="age-abonado" value="0">
+                        <label>Monto Ya Abonado / Seña ($ ARS)</label>
+                        <input type="number" id="age-abonado" value="0" oninput="guardarCampoLocal(this.id, this.value)">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Materiales Específicos Empleados / Observaciones</label>
-                    <textarea id="age-materiales" rows="2" placeholder="Ej: 3 Térmicas Schneider 16A, 1 Disyuntor 40A, Caja de paso exterior."></textarea>
+                    <label>Notas / Materiales usados para recordar</label>
+                    <textarea id="age-materiales" rows="2" placeholder="Ej: Pasado de cables terminado, queda pendiente colocar artefactos." oninput="guardarCampoLocal(this.id, this.value)"></textarea>
                 </div>
-                <button class="btn btn-warning" onclick="agregarTrabajoAgenda()">💾 GUARDAR TRABAJO EN AGENDA</button>
+                <button class="btn btn-warning" onclick="agregarTrabajoAgenda()">💾 GUARDAR EN HISTORIAL DE AGENDA</button>
             </div>
 
-            <!-- Listado de Trabajos Guardados -->
             <div id="agenda-lista-container">
-                <h3 style="margin-bottom:12px; font-size:1.1rem;">Historial y Planificación de Obras</h3>
+                <h3 style="margin-bottom:12px; font-size:1.1rem;">Historial de Obras Guardadas</h3>
                 <div id="agenda-dinamica"></div>
             </div>
         </section>
-
     </div>
 
     <!-- Menú de Navegación Inferior -->
@@ -645,64 +612,71 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
         </button>
     </nav>
 
-    <!-- ================= CONTEXTO DE IMPRESIÓN OCULTO PARA EL CLIENTE ================= -->
+    <!-- ================= CONTEXTO DE IMPRESIÓN / GENERACIÓN DEL PDF ================= -->
     <div id="print-wrapper">
         <div class="print-flex" style="border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
             <div>
-                <h1 style="font-size: 26pt; margin: 0;" id="p-my-name"></h1>
-                <p style="font-size: 11pt; color: #475569;" id="p-my-phone"></p>
+                <h1 style="font-size: 24pt; margin: 0; color: #000; font-weight: bold;" id="p-my-name"></h1>
+                <p style="font-size: 11pt; color: #475569; margin-top: 5px;" id="p-my-phone"></p>
             </div>
             <div style="text-align: right;">
-                <h2 style="font-size: 16pt; margin: 0; color: #1e293b; border:none; padding:0;">PRESUPUESTO TÉCNICO</h2>
-                <p id="p-date" style="font-size: 10pt; font-weight: bold;"></p>
+                <h2 style="font-size: 16pt; margin: 0; color: #1e293b; font-weight: bold;">PRESUPUESTO TÉCNICO</h2>
+                <p id="p-date" style="font-size: 10pt; font-weight: bold; margin-top: 5px; color: #000;"></p>
             </div>
         </div>
 
-        <div class="print-grid-2" style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+        <div class="print-grid-2" style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin-bottom: 25px; border: 1px solid #cbd5e1;">
             <div>
-                <h3 style="font-size: 11pt; text-transform: uppercase; margin-bottom: 5px; color:#475569;">Cliente Destinatario</h3>
-                <p style="font-size: 12pt; font-weight: bold;" id="p-cli-name"></p>
-                <p id="p-cli-address"></p>
-                <p id="p-cli-phone"></p>
+                <h3 style="font-size: 11pt; text-transform: uppercase; margin-bottom: 5px; color:#475569; font-weight: bold;">Cliente Destinatario</h3>
+                <p style="font-size: 12pt; font-weight: bold; color: #000;" id="p-cli-name"></p>
+                <p id="p-cli-address" style="color: #000; margin-top: 3px;"></p>
+                <p id="p-cli-phone" style="color: #000; margin-top: 3px;"></p>
             </div>
             <div>
-                <h3 style="font-size: 11pt; text-transform: uppercase; margin-bottom: 5px; color:#475569;">Condiciones Comerciales</h3>
-                <p><strong>Forma de pago elegida:</strong> <span id="p-payment"></span></p>
-                <p><strong>Financiación:</strong> <span id="p-installments"></span></p>
-                <p id="p-usd-calc" style="font-weight: bold; margin-top:4px;"></p>
+                <h3 style="font-size: 11pt; text-transform: uppercase; margin-bottom: 5px; color:#475569; font-weight: bold;">Condiciones Comerciales</h3>
+                <p style="color: #000;"><strong>Forma de pago:</strong> <span id="p-payment"></span></p>
+                <p style="color: #000; margin-top: 3px;"><strong>Financiación:</strong> <span id="p-installments"></span></p>
+                <p id="p-usd-calc" style="font-weight: bold; margin-top: 6px; color: #1e3a8a;"></p>
             </div>
         </div>
 
-        <h3 class="text-black" style="font-size: 14pt; border-bottom: 2px solid #000; padding-bottom: 4px; margin-top: 20px;">1. Ítems y Desglose de Trabajos</h3>
+        <h3 class="text-black" style="font-size: 13pt; border-bottom: 2px solid #000; padding-bottom: 4px; margin-top: 20px; font-weight: bold;">1. Desglose y Costos de Obra</h3>
         <table class="print-table" id="p-table-items">
             <thead>
                 <tr>
-                    <th class="text-black">Descripción Conceptual</th>
-                    <th class="text-black" style="width: 150px; text-align: right;">Importe</th>
+                    <th class="text-black">Concepto / Descripción del Rubro</th>
+                    <th class="text-black" style="width: 160px; text-align: right;">Importe</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>MANO DE OBRA / SERVICIOS TÉCNICOS</strong><br>
+                        <p id="p-mo-det" style="white-space: pre-wrap; font-size: 10pt; color: #334155; margin-top: 5px;"></p>
+                    </td>
+                    <td style="text-align: right; vertical-align: top;" id="p-sub-mo" class="num-rojo"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>MATERIALES ELÉCTRICOS E INSUMOS</strong><br>
+                        <p id="p-mat-det" style="white-space: pre-wrap; font-size: 10pt; color: #334155; margin-top: 5px;"></p>
+                    </td>
+                    <td style="text-align: right; vertical-align: top;" id="p-sub-mat" class="num-verde"></td>
+                </tr>
+            </tbody>
         </table>
 
-        <div style="margin-top: 20px; float: right; width: 320px; background-color: #f8fafc; border: 2px solid #000; padding: 15px; border-radius: 6px;">
-            <div class="print-flex" style="margin-bottom: 8px; font-size:11pt;">
-                <span class="text-black">Subtotal Mano de Obra:</span>
-                <span id="p-sub-mo" class="num-rojo"></span>
-            </div>
-            <div class="print-flex" style="margin-bottom: 8px; font-size:11pt;">
-                <span class="text-black">Subtotal Materiales:</span>
-                <span id="p-sub-mat" class="num-verde"></span>
-            </div>
-            <div class="print-flex" style="border-top: 2px dashed #000; padding-top: 8px; font-size: 13pt; font-weight: bold;">
+        <div style="margin-top: 20px; float: right; width: 340px; background-color: #f8fafc; border: 2px solid #000; padding: 12px; border-radius: 6px;">
+            <div class="print-flex" style="font-size: 13pt; font-weight: bold; align-items: center;">
                 <span class="text-black">TOTAL NETO:</span>
                 <span id="p-total" class="num-amarillo"></span>
             </div>
         </div>
         <div style="clear: both;"></div>
 
-        <div id="p-memoria-block" style="margin-top: 30px;">
-            <h3 class="text-black" style="font-size: 14pt; border-bottom: 2px solid #000; padding-bottom: 4px;">2. Memoria Técnica de Ingeniería e Infraestructura</h3>
-            <div style="background: #fafafa; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 10pt; line-height: 1.5; margin-top:10px;">
+        <div id="p-memoria-block" style="margin-top: 25px;">
+            <h3 class="text-black" style="font-size: 13pt; border-bottom: 2px solid #000; padding-bottom: 4px; font-weight: bold;">2. Memoria Técnica de Ingeniería e Infraestructura</h3>
+            <div style="background: #f8fafc; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 10pt; line-height: 1.5; margin-top:10px; color: #000;">
                 <p><strong>Alcance Operativo:</strong> <span id="p-mem-alcance"></span></p>
                 <p style="margin-top: 5px;"><strong>Especificación de Conductores:</strong> <span id="p-mem-cable"></span> | <strong>Marca:</strong> <span id="p-mem-marca"></span> | <strong>Secciones:</strong> <span id="p-mem-seccion"></span></p>
                 <p style="margin-top: 5px;"><strong>Canalizaciones:</strong> <span id="p-mem-canos"></span></p>
@@ -711,9 +685,9 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             </div>
         </div>
 
-        <div id="p-garantia-block" style="margin-top: 30px;">
-            <h3 class="text-black" style="font-size: 14pt; border-bottom: 2px solid #000; padding-bottom: 4px;">3. Certificado Estándar de Garantía</h3>
-            <div style="font-size: 9.5pt; text-align: justify; line-height: 1.5; color: #222; margin-top: 10px; background: #fafafa; padding:12px; border: 1px solid #ddd; border-radius:6px;">
+        <div id="p-garantia-block" style="margin-top: 25px;">
+            <h3 class="text-black" style="font-size: 13pt; border-bottom: 2px solid #000; padding-bottom: 4px; font-weight: bold;">3. Certificado Estándar de Garantía</h3>
+            <div style="font-size: 9.5pt; text-align: justify; line-height: 1.5; color: #000; margin-top: 10px; background: #f8fafc; padding:12px; border: 1px solid #cbd5e1; border-radius:6px;">
                 <p><strong>Vigencia estipulada:</strong> <span id="p-gar-tiempo" style="font-weight: bold;"></span></p>
                 <p style="margin-top:6px; white-space: pre-wrap;" id="p-gar-texto"></p>
             </div>
@@ -721,80 +695,57 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
 
         <div class="print-signatures">
             <div class="signature-block">
-                <img id="p-img-pro" src="" alt="Firma del Proveedor (Vacio si no firmó)" style="display:none; height:80px; margin:0 auto;">
+                <img id="p-img-pro" src="" alt="Firma Especialista" style="display:none; margin:0 auto;">
                 <div style="margin-top:5px; border-top:1px solid #000; font-weight:bold; font-size:10pt;">Firma del Especialista</div>
             </div>
             <div class="signature-block">
-                <img id="p-img-cli" src="" alt="Firma del Cliente (Vacio si no firmó)" style="display:none; height:80px; margin:0 auto;">
+                <img id="p-img-cli" src="" alt="Firma Cliente" style="display:none; margin:0 auto;">
                 <div style="margin-top:5px; border-top:1px solid #000; font-weight:bold; font-size:10pt;">Conformidad del Cliente</div>
             </div>
         </div>
     </div>
 
-    <!-- ================= SCRIPT DE LÓGICA COMPLETA DE LA APP ================= -->
+    <!-- ================= SCRIPT DE LÓGICA PERSISTENTE Y TOTALES ================= -->
     <script>
-        // Arreglo en memoria local persistida de la Agenda
         let agendaData = JSON.parse(localStorage.getItem('roma_agenda')) || [];
 
-        // Cambiar entre solapas
+        function guardarCampoLocal(id, valor) {
+            localStorage.setItem('roma_form_' + id, valor);
+        }
+
+        function cargarCamposLocales() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.id) {
+                    const guardado = localStorage.getItem('roma_form_' + input.id);
+                    if (guardado !== null) {
+                        input.value = guardado;
+                    }
+                }
+            });
+        }
+
         function switchTab(tabId, btn) {
             document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btn.classList.add('active');
-            
-            // Refrescar datos cruzados automáticos al tocar pestañas
             sincronizarDatos();
         }
 
-        // Sincronización inteligente e interactiva de campos entre módulos
         function sincronizarDatos() {
-            const cliente = document.getElementById('cli-name').value || "Cliente No Asignado";
+            const cliente = document.getElementById('cli-name').value || "";
             const direccion = document.getElementById('cli-address').value || "";
             
-            // Actualizar etiquetas en vivo de memoria técnica y garantía
-            document.getElementById('mem-client-label').innerText = cliente;
+            document.getElementById('mem-client-label').innerText = cliente || "Cliente No Asignado";
             document.getElementById('gar-cliente').value = cliente;
             document.getElementById('gar-direccion').value = direccion;
-            
-            // Auto-rellenar formulario de agenda activa
             document.getElementById('age-cliente').value = cliente;
         }
 
-        // Agregar dinámicamente filas de Mano de Obra
-        function addMoItem() {
-            const container = document.getElementById('mo-container');
-            const div = document.createElement('div');
-            div.className = 'item-row';
-            div.innerHTML = `
-                <input type="text" placeholder="Descripción de la tarea" value="">
-                <input type="number" placeholder="Monto" value="0" class="mo-price" oninput="calcularTotales()">
-                <button class="btn-del" onclick="this.parentElement.remove(); calcularTotales();">✕</button>
-            `;
-            container.appendChild(div);
-        }
-
-        // Agregar dinámicamente filas de Materiales
-        function addMatItem() {
-            const container = document.getElementById('mat-container');
-            const div = document.createElement('div');
-            div.className = 'item-row';
-            div.innerHTML = `
-                <input type="text" placeholder="Material / Kit" value="">
-                <input type="number" placeholder="Monto" value="0" class="mat-price" oninput="calcularTotales()">
-                <button class="btn-del" onclick="this.parentElement.remove(); calcularTotales();">✕</button>
-            `;
-            container.appendChild(div);
-        }
-
-        // Algoritmia de cálculo financiero de Cuotas, totales y conversión de Divisas
-        let totalGlobalPesos = 0;
         function calcularTotales() {
-            let subtotalMO = 0;
-            let subtotalMat = 0;
-
-            document.querySelectorAll('.mo-price').forEach(input => { subtotalMO += parseFloat(input.value) || 0; });
-            document.querySelectorAll('.mat-price').forEach(input => { subtotalMat += parseFloat(input.value) || 0; });
+            let subtotalMO = parseFloat(document.getElementById('mo-monto-total').value) || 0;
+            let subtotalMat = parseFloat(document.getElementById('mat-monto-total').value) || 0;
 
             const total = subtotalMO + subtotalMat;
             const currency = document.getElementById('currency-select').value;
@@ -812,10 +763,9 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
                 totalARS = total * rate;
             }
 
-            // Guardamos el costo en la moneda nativa cargada para la agenda automatizada
+            // Sincroniza el monto de la agenda de forma automática en ARS
             document.getElementById('age-monto').value = Math.round(totalARS);
 
-            // Cálculos informativos de cuotas pasados a Dólares Estadounidenses
             const cuotasBox = document.getElementById('cuotas-info');
             if (installments > 1) {
                 const valorCuotaUSD = totalUSD / installments;
@@ -826,14 +776,20 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             }
         }
 
-        // Lógica de Firmas Digitales con HTML5 Canvas en pantallas Touch/Mobile
+        // Configuración nativa de los Canvas para firmas con guardado persistente inmediato
         function setupCanvas(canvasId) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             
-            // Adaptar resolución de dibujo del canvas interno
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
+
+            const fGuardada = localStorage.getItem('roma_sig_' + canvasId);
+            if (fGuardada) {
+                const img = new Image();
+                img.src = fGuardada;
+                img.onload = function() { ctx.drawImage(img, 0, 0); };
+            }
 
             let drawing = false;
             
@@ -845,13 +801,17 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             }
 
             function start(e) { drawing = true; draw(e); }
-            function end() { drawing = false; ctx.beginPath(); }
+            function end() { 
+                drawing = false; 
+                ctx.beginPath(); 
+                localStorage.setItem('roma_sig_' + canvasId, canvas.toDataURL());
+            }
             
             function draw(e) {
                 if(!drawing) return;
                 e.preventDefault();
                 const pos = getPos(e);
-                ctx.lineWidth = 2.5;
+                ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
                 ctx.strokeStyle = '#000000';
                 ctx.lineTo(pos.x, pos.y);
@@ -872,15 +832,16 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            localStorage.removeItem('roma_sig_' + canvasId);
         }
 
-        // MÓDULO DE AGENDA Y CONTABILIDAD DE INGRESOS/DEUDAS
+        // Historial y Agenda
         function agregarTrabajoAgenda() {
             const cliente = document.getElementById('age-cliente').value || "Cliente Sin Nombre";
             const status = document.getElementById('age-status').value;
             const montoTotal = parseFloat(document.getElementById('age-monto').value) || 0;
             const montoAbonado = parseFloat(document.getElementById('age-abonado').value) || 0;
-            const materiales = document.getElementById('age-materiales').value || "Ninguno detallado";
+            const materiales = document.getElementById('age-materiales').value || "Ninguna";
 
             const nuevoTrabajo = {
                 id: Date.now(),
@@ -893,23 +854,23 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
 
             agendaData.push(nuevoTrabajo);
             localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
-            
-            // Reseteo rápido visual
             document.getElementById('age-materiales').value = "";
+            localStorage.removeItem('roma_form_age-materiales');
             renderAgenda();
         }
 
         function eliminarTrabajo(id) {
-            agendaData = agendaData.filter(item => item.id !== id);
-            localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
-            renderAgenda();
+            if(confirm("¿Seguro que querés borrar este registro del historial?")) {
+                agendaData = agendaData.filter(item => item.id !== id);
+                localStorage.setItem('roma_agenda', JSON.stringify(agendaData));
+                renderAgenda();
+            }
         }
 
         function actualizarEstadoAgenda(id, nuevoEstado) {
             const item = agendaData.find(i => i.id === id);
             if(item) {
                 item.status = nuevoEstado;
-                // Si pasa a realizado, asumimos contablemente que se saldó la totalidad si figuraba en 0
                 if(nuevoEstado === "realizado" && item.montoAbonado === 0) {
                     item.montoAbonado = item.montoTotal;
                 }
@@ -937,11 +898,11 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
                         <strong style="font-size:1.1rem; color:var(--warning);">${item.cliente}</strong>
                         <span class="badge badge-${item.status === 'en proceso' ? 'proceso' : item.status}">${item.status}</span>
                     </div>
-                    <p style="font-size:0.9rem; margin-bottom:6px;"><strong>Materiales:</strong> ${item.materiales}</p>
+                    <p style="font-size:0.9rem; margin-bottom:6px;"><strong>Notas:</strong> ${item.materiales}</p>
                     <div class="grid-2" style="font-size:0.85rem; background:rgba(0,0,0,0.2); padding:8px; border-radius:6px;">
                         <div>Total: <strong>$ ${item.montoTotal}</strong></div>
                         <div>Cobrado: <strong style="color:#4ade80;">$ ${item.montoAbonado}</strong></div>
-                        <div>Deuda: <strong style="color:#f87171;">$ ${deuda > 0 ? deuda : 0}</strong></div>
+                        <div>Resta cobrar: <strong style="color:#f87171;">$ ${deuda > 0 ? deuda : 0}</strong></div>
                     </div>
                     <div style="display:flex; gap:8px; margin-top:10px;">
                         <select style="padding:6px; font-size:0.8rem; flex:1;" onchange="actualizarEstadoAgenda(${item.id}, this.value)">
@@ -950,20 +911,29 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
                             <option value="en proceso">En Proceso</option>
                             <option value="realizado">Realizado / Cobrado</option>
                         </select>
-                        <button class="btn btn-danger" style="margin:0; padding:6px 12px; font-size:0.8rem; width:auto;" onclick="eliminarTrabajo(${item.id})">Eliminar</button>
+                        <button class="btn btn-danger" style="margin:0; padding:6px 12px; font-size:0.8rem; width:auto;" onclick="eliminarTrabajo(${item.id})">Borrar</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
 
-            // Renderizar contadores en la interfaz del tablero financiero
             document.getElementById('dash-ingresado').innerText = `$ ${totalIngresado.toLocaleString('es-AR')}`;
             document.getElementById('dash-adeudado').innerText = `$ ${totalAdeudado.toLocaleString('es-AR')}`;
         }
 
-        // EXPORTACIÓN EXCLUSIVA PROFESIONAL A PDF MEDIANTE HTML2PDF
+        function resetearAppCompleta() {
+            if (confirm("¿Estás seguro de que querés limpiar todos los campos para iniciar un nuevo cliente? (El historial guardado en la solapa de Agenda NO se borrará)")) {
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('roma_form_') || key.startsWith('roma_sig_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                location.reload();
+            }
+        }
+
+        // Exportación Robusta de PDF sin hojas en blanco
         function exportarPDF() {
-            // Sincronizar textos a la plantilla limpia de impresión comercial
             document.getElementById('p-my-name').innerText = document.getElementById('my-name').value;
             document.getElementById('p-my-phone').innerText = "Contacto Técnico: " + document.getElementById('my-phone').value;
             document.getElementById('p-date').innerText = "Fecha de Emisión: " + new Date().toLocaleDateString('es-AR');
@@ -978,45 +948,23 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             const inst = document.getElementById('installments-select').value;
             document.getElementById('p-installments').innerText = inst === "1" ? "Pago único sin financiar" : `${inst} Cuotas fijas mensuales`;
 
-            // Totales por separado para inyectar en la tabla
-            let subMO = 0, subMat = 0;
-            const tbody = document.querySelector('#p-table-items tbody');
-            tbody.innerHTML = "";
-
-            // Recorrer y agregar Mano de Obra en la visual de salida
-            document.querySelectorAll('#mo-container .item-row').forEach(row => {
-                const desc = row.querySelectorAll('input')[0].value;
-                const val = parseFloat(row.querySelectorAll('input')[1].value) || 0;
-                subMO += val;
-                if(desc) {
-                    tbody.innerHTML += `<tr><td class="text-black">${desc} (Mano de Obra)</td><td style="text-align:right;" class="num-rojo">${mon} ${val.toLocaleString('es-AR')}</td></tr>`;
-                }
-            });
-
-            // Recorrer y agregar Materiales en la visual de salida
-            document.querySelectorAll('#mat-container .item-row').forEach(row => {
-                const desc = row.querySelectorAll('input')[0].value;
-                const val = parseFloat(row.querySelectorAll('input')[1].value) || 0;
-                subMat += val;
-                if(desc) {
-                    tbody.innerHTML += `<tr><td class="text-black">${desc} (Materiales)</td><td style="text-align:right;" class="num-verde">${mon} ${val.toLocaleString('es-AR')}</td></tr>`;
-                }
-            });
-
-            const totalNeto = subMO + subMat;
+            let subMO = parseFloat(document.getElementById('mo-monto-total').value) || 0;
+            let subMat = parseFloat(document.getElementById('mat-monto-total').value) || 0;
+            let totalNeto = subMO + subMat;
             const rate = parseFloat(document.getElementById('usd-rate').value) || 1;
 
-            // Inyectar etiquetas numéricas puras respetando el pedido cromático estricto del usuario
-            document.getElementById('p-sub-mo').innerHTML = `<span class="text-black">${mon} </span><span class="num-rojo">${subMO.toLocaleString('es-AR')}</span>`;
-            document.getElementById('p-sub-mat').innerHTML = `<span class="text-black">${mon} </span><span class="num-verde">${subMat.toLocaleString('es-AR')}</span>`;
-            document.getElementById('p-total').innerHTML = `<span class="text-black">${mon} </span><span class="num-amarillo">${totalNeto.toLocaleString('es-AR')}</span>`;
+            document.getElementById('p-mo-det').innerText = document.getElementById('mo-detalle').value || "Tareas de servicio técnico profesional no especificadas.";
+            document.getElementById('p-mat-det').innerText = document.getElementById('mat-detalle').value || "Insumos y materiales homologados según requerimiento.";
 
-            // Si se cobraba en pesos e indicaron cuotas, detallar la equivalencia exacta en dólares requerida
+            document.getElementById('p-sub-mo').innerText = `${mon} ${subMO.toLocaleString('es-AR')}`;
+            document.getElementById('p-sub-mat').innerText = `${mon} ${subMat.toLocaleString('es-AR')}`;
+            document.getElementById('p-total').innerText = `${mon} ${totalNeto.toLocaleString('es-AR')}`;
+
             if(mon === "ARS") {
                 const totalEnUSD = totalNeto / rate;
                 const cuotasCant = parseInt(inst);
                 if(cuotasCant > 1) {
-                    document.getElementById('p-usd-calc').innerText = `Equivalencia Cuotas: ${cuotasCant} cuotas de USD ${(totalEnUSD / cuotasCant).toFixed(2)} c/u`;
+                    document.getElementById('p-usd-calc').innerText = `Equivalencia Financiación: ${cuotasCant} cuotas de USD ${(totalEnUSD / cuotasCant).toFixed(2)} c/u`;
                 } else {
                     document.getElementById('p-usd-calc').innerText = `Valor de Referencia: USD ${totalEnUSD.toFixed(2)}`;
                 }
@@ -1024,7 +972,6 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
                 document.getElementById('p-usd-calc').innerText = "";
             }
 
-            // Traspasar Memoria Técnica Automatizada
             document.getElementById('p-mem-alcance').innerText = document.getElementById('mem-alcance').value;
             document.getElementById('p-mem-cable').innerText = document.getElementById('mem-cable-tipo').value;
             document.getElementById('p-mem-marca').innerText = document.getElementById('mem-cable-marca').value;
@@ -1037,35 +984,32 @@ La cobertura contempla cualquier anomalía o defecto derivado de la mano de obra
             document.getElementById('p-mem-id').innerText = document.getElementById('mem-id').value;
             document.getElementById('p-mem-id-s').innerText = document.getElementById('mem-id-specs').value;
 
-            // Traspasar Garantía
             document.getElementById('p-gar-tiempo').innerText = document.getElementById('gar-tiempo').value;
             document.getElementById('p-gar-texto').innerText = document.getElementById('gar-texto').value;
 
-            // Renderizar las imágenes de las firmas desde los canvas si contienen trazos
             const imgPro = document.getElementById('p-img-pro');
             const imgCli = document.getElementById('p-img-cli');
 
-            imgPro.src = document.getElementById('sig-pro').toDataURL();
-            imgPro.style.display = "block";
-            imgCli.src = document.getElementById('sig-cli').toDataURL();
-            imgCli.style.display = "block";
+            const fPro = localStorage.getItem('roma_sig_sig-pro');
+            const fCli = localStorage.getItem('roma_sig_sig-cli');
 
-            // Ejecución limpia del generador PDF optimizado para dispositivos móviles y escritorio
+            if(fPro) { imgPro.src = fPro; imgPro.style.display = "block"; } else { imgPro.style.display = "none"; }
+            if(fCli) { imgCli.src = fCli; imgCli.style.display = "block"; } else { imgCli.style.display = "none"; }
+
             const elementoAImprimir = document.getElementById('print-wrapper');
             const opciones = {
-                margin:       [10, 10, 10, 10],
-                filename:     `Presupuesto_Profesional_${document.getElementById('cli-name').value || 'Cliente'}.pdf`,
+                margin:       [12, 12, 12, 12],
+                filename:     `Presupuesto_${document.getElementById('cli-name').value || 'Cliente'}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                html2canvas:  { scale: 2, useCORS: true, logging: false, scrollY: 0, scrollX: 0 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Ejecutar conversión fluida
-            html2pdf().from(elementoAImprimir).save();
+            html2pdf().set(opciones).from(elementoAImprimir).save();
         }
 
-        // Inicialización nativa al cargar la pantalla
         window.onload = function() {
+            cargarCamposLocales();
             setupCanvas('sig-pro');
             setupCanvas('sig-cli');
             calcularTotales();
